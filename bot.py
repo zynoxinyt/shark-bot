@@ -1,5 +1,6 @@
 from flask import Flask
 from threading import Thread
+import os
 
 app = Flask(__name__)
 
@@ -12,16 +13,15 @@ def run_flask():
 
 Thread(target=run_flask).start()
 
-# ==================== YOUR BOT CODE ====================
+# ==================== BOT CODE ====================
 import discord
 from discord.ext import commands
-import os
 import asyncio
 import json
 import requests
-from dotenv import load_dotenv
 
-load_dotenv()
+# Get token from environment variable (Render) OR .env file (PC)
+TOKEN = os.getenv("DISCORD_TOKEN")
 
 def get_stats(player):
     try:
@@ -186,4 +186,4 @@ async def tracking_loop():
                             await channel.send("🚨 **SNIPE ALERT!**", embed=embed)
         await asyncio.sleep(3)
 
-bot.run(os.getenv("DISCORD_TOKEN"))
+bot.run(TOKEN)
