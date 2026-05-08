@@ -13,14 +13,12 @@ def run_flask():
 
 Thread(target=run_flask).start()
 
-# ==================== BOT CODE ====================
 import discord
 from discord.ext import commands
 import asyncio
 import json
 import requests
 
-# Get token from environment variable (Render) OR .env file (PC)
 TOKEN = os.getenv("DISCORD_TOKEN")
 
 def get_stats(player):
@@ -109,10 +107,9 @@ async def on_ready():
 
 @bot.tree.command(name="track", description="Track a player")
 async def track(interaction: discord.Interaction, player: str):
-    await interaction.response.defer()
     stats = get_stats(player)
     if stats is None:
-        await interaction.followup.send(f"❌ Could not find: **{player}**")
+        await interaction.response.send_message(f"❌ Could not find: **{player}**")
         return
     tracking[player] = stats["games"]
     last_stats[player] = {
@@ -122,18 +119,17 @@ async def track(interaction: discord.Interaction, player: str):
     alert_channel[player] = interaction.channel.id
     save_tracking()
     embed = tracking_embed(player, stats)
-    await interaction.followup.send(embed=embed)
+    await interaction.response.send_message(embed=embed)
 
 @bot.tree.command(name="list", description="Show tracked players")
 async def tracklist(interaction: discord.Interaction):
-    await interaction.response.defer()
     if not tracking:
-        await interaction.followup.send("📭 Not tracking anyone!")
+        await interaction.response.send_message("📭 Not tracking anyone!")
         return
     msg = "**📋 Tracking List:**\n"
     for p, g in tracking.items():
         msg += f"• **{p}**: {g:,} games\n"
-    await interaction.followup.send(msg)
+    await interaction.response.send_message(msg)
 
 @bot.tree.command(name="stop", description="Stop tracking")
 async def stoptrack(interaction: discord.Interaction, player: str):
@@ -148,13 +144,12 @@ async def stoptrack(interaction: discord.Interaction, player: str):
 
 @bot.tree.command(name="check", description="Check stats")
 async def check(interaction: discord.Interaction, player: str):
-    await interaction.response.defer()
     stats = get_stats(player)
     if stats is None:
-        await interaction.followup.send(f"❌ Not found: **{player}**")
+        await interaction.response.send_message(f"❌ Not found: **{player}**")
         return
     embed = tracking_embed(player, stats)
-    await interaction.followup.send(embed=embed)
+    await interaction.response.send_message(embed=embed)
 
 async def tracking_loop():
     await bot.wait_until_ready()
