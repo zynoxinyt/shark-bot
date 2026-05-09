@@ -47,23 +47,21 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 
 TRACKING_FILE = "tracking.json"
 tracking = {}
-alert_channel = {}
 last_stats = {}
 
 def save_tracking():
     try:
         with open(TRACKING_FILE, 'w') as f:
-            json.dump({"players": tracking, "channels": alert_channel, "last_stats": last_stats}, f)
+            json.dump({"players": tracking, "last_stats": last_stats}, f)
     except:
         pass
 
 def load_tracking():
-    global tracking, alert_channel, last_stats
+    global tracking, last_stats
     try:
         with open(TRACKING_FILE, 'r') as f:
             data = json.load(f)
             tracking = data.get("players", {})
-            alert_channel = data.get("channels", {})
             last_stats = data.get("last_stats", {})
     except:
         pass
@@ -98,7 +96,6 @@ async def track(interaction: discord.Interaction, player: str):
         "wins": stats["wins"], "kills": stats["kills"],
         "final_kills": stats["final_kills"], "beds": stats["beds"], "deaths": stats["deaths"]
     }
-    alert_channel[player] = interaction.channel.id
     save_tracking()
     await interaction.response.send_message(f"Now tracking {player}")
 
@@ -116,7 +113,6 @@ async def tracklist(interaction: discord.Interaction):
 async def stoptrack(interaction: discord.Interaction, player: str):
     if player in tracking:
         del tracking[player]
-        alert_channel.pop(player, None)
         last_stats.pop(player, None)
         save_tracking()
         await interaction.response.send_message(f"Stopped {player}")
@@ -157,20 +153,21 @@ async def tracking_loop():
                     }
                     save_tracking()
                     
-                    ch = alert_channel.get(player)
-                    if ch:
-                        channel = bot.get_channel(ch)
-                        if channel:
-                            result = "WIN ✅" if match_wins > 0 else "LOSS ❌"
-                            color = 0x00FF00 if match_wins > 0 else 0xFF0000
-                            
-                            embed = discord.Embed(
-                                title=f"{player} played 1 game of BedWars",
-                                description=f"**Match - {result}**\n🛏️ Bed - **{match_beds}**\n💀 Final Kills - **{match_final}**\n⚔️ Kills - **{match_kills}**\n☠️ Deaths - **{match_deaths}**",
-                                color=color
-                            )
-                            embed.set_footer(text="Shark 🦈 Tracker")
-                            await channel.send(embed=embed)
+                    result = "WIN ✅" if match_wins > 0 else "LOSS ❌"
+                    color = 0x00FF00 if match_wins > 0 else 0xFF0000
+                    
+                    embed = discord.Embed(
+                        title=f"{player} played 1 game of BedWars",
+                        description=f"**Match - {result}**\n🛏️ Bed - **{match_beds}**\n💀 Final Kills - **{match_final}**\n⚔️ Kills - **{match_kills}**\n☠️ Deaths - **{match_deaths}**",
+                        color=color
+                    )
+                    embed.set_footer(text="Shark 🦈 Tracker")
+                    
+                    for guild in bot.guilds:
+                        for channel in guild.text_channels:
+                            if channel.name == "snipe":
+                                await channel.send(embed=embed)
+                                break
         await asyncio.sleep(3)
 
 bot.run(TOKEN)
