@@ -55,9 +55,12 @@ def alert_embed(username, match_stats):
     
     embed = discord.Embed(
         title=f"{username} Is Playing BedWars!",
-        description=f"**Match - {result}**\nKills: **{match_stats['kills']}** | Beds: **{match_stats['beds']}** | Deaths: **{match_stats['deaths']}**",
         color=color
     )
+    embed.add_field(name="Result", value=f"**{result}**", inline=False)
+    embed.add_field(name="Kills", value=str(match_stats['kills']), inline=True)
+    embed.add_field(name="Beds", value=str(match_stats['beds']), inline=True)
+    embed.add_field(name="Deaths", value=str(match_stats['deaths']), inline=True)
     embed.set_footer(text="Shark • GO GO GO!")
     return embed
 
@@ -94,7 +97,7 @@ load_tracking()
 async def on_ready():
     try:
         synced = await bot.tree.sync()
-        print(f"✅ {bot.user} is online! Synced {len(synced)} commands.")
+        print(f"Bot online. Synced {len(synced)} commands.")
     except Exception as e:
         print(f"Sync error: {e}")
     for player in list(tracking.keys()):
@@ -132,10 +135,10 @@ async def tracklist(interaction: discord.Interaction):
         return
     msg = "**Tracking List:**\n"
     for p, g in tracking.items():
-        msg += f"• **{p}**: {g:,} games\n"
+        msg += f"{p}: {g:,} games\n"
     await interaction.followup.send(msg)
 
-@bot.tree.command(name="stop", description="Stop tracking a player")
+@bot.tree.command(name="stop", description="Stop tracking")
 async def stoptrack(interaction: discord.Interaction, player: str):
     if player in tracking:
         del tracking[player]
