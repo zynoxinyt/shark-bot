@@ -93,8 +93,11 @@ load_tracking()
 
 @bot.event
 async def on_ready():
-    await bot.tree.sync()
-    print(f"✅ {bot.user} is online!")
+    try:
+        synced = await bot.tree.sync()
+        print(f"✅ {bot.user} is online! Synced {len(synced)} commands.")
+    except Exception as e:
+        print(f"Sync error: {e}")
     for player in list(tracking.keys()):
         stats = get_stats(player)
         if stats:
@@ -105,11 +108,12 @@ async def on_ready():
     save_tracking()
     bot.loop.create_task(tracking_loop())
 
-@bot.tree.command(name="track", description="Track a player")
+@bot.tree.command(name="track", description="Track a BedWars player")
 async def track(interaction: discord.Interaction, player: str):
+    await interaction.response.defer()
     stats = get_stats(player)
     if stats is None:
-        await interaction.response.send_message(f"❌ Could not find: **{player}**")
+        await interaction.followup.send(f"❌ Could not find: **{player}**")
         return
     tracking[player] = stats["games"]
     last_stats[player] = {
@@ -119,19 +123,20 @@ async def track(interaction: discord.Interaction, player: str):
     alert_channel[player] = interaction.channel.id
     save_tracking()
     embed = tracking_embed(player, stats)
-    await interaction.response.send_message(embed=embed)
+    await interaction.followup.send(embed=embed)
 
 @bot.tree.command(name="list", description="Show tracked players")
 async def tracklist(interaction: discord.Interaction):
+    await interaction.response.defer()
     if not tracking:
-        await interaction.response.send_message("📭 Not tracking anyone!")
+        await interaction.followup.send("📭 Not tracking anyone!")
         return
     msg = "**📋 Tracking List:**\n"
     for p, g in tracking.items():
         msg += f"• **{p}**: {g:,} games\n"
-    await interaction.response.send_message(msg)
+    await interaction.followup.send(msg)
 
-@bot.tree.command(name="stop", description="Stop tracking")
+@bot.tree.command(name="stop", description="Stop tracking a player")
 async def stoptrack(interaction: discord.Interaction, player: str):
     if player in tracking:
         del tracking[player]
@@ -142,14 +147,19 @@ async def stoptrack(interaction: discord.Interaction, player: str):
     else:
         await interaction.response.send_message(f"❌ Not tracking **{player}**")
 
-@bot.tree.command(name="check", description="Check stats")
+@bot.tree.command(name="check", description="Check player stats")
 async def check(interaction: discord.Interaction, player: str):
+    await interaction.response.defer()
     stats = get_stats(player)
     if stats is None:
-        await interaction.response.send_message(f"❌ Not found: **{player}**")
+        await interaction.followup.send(f"❌ Not found: **{player}**")
         return
     embed = tracking_embed(player, stats)
-    await interaction.response.send_message(embed=embed)
+    await interaction.followup.send(embed=embed)
+
+@bot.tree.command(name="ping", description="Test if Shark is online")
+async def ping(interaction: discord.Interaction):
+    await interaction.response.send_message("🦈 Shark is online!")
 
 async def tracking_loop():
     await bot.wait_until_ready()
