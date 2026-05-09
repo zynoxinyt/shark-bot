@@ -135,39 +135,46 @@ async def tracking_loop():
     await bot.wait_until_ready()
     while not bot.is_closed():
         for player, old_games in list(tracking.items()):
-            new_stats = get_stats(player)
-            if new_stats:
-                new_games = new_stats["games"]
-                if new_games > old_games:
-                    old = last_stats.get(player, {})
-                    match_wins = max(0, new_stats["wins"] - old.get("wins", 0))
-                    match_kills = max(0, new_stats["kills"] - old.get("kills", 0))
-                    match_final = max(0, new_stats["final_kills"] - old.get("final_kills", 0))
-                    match_beds = max(0, new_stats["beds"] - old.get("beds", 0))
-                    match_deaths = max(0, new_stats["deaths"] - old.get("deaths", 0))
-                    
-                    tracking[player] = new_games
-                    last_stats[player] = {
-                        "wins": new_stats["wins"], "kills": new_stats["kills"],
-                        "final_kills": new_stats["final_kills"], "beds": new_stats["beds"], "deaths": new_stats["deaths"]
-                    }
-                    save_tracking()
-                    
-                    result = "WIN ✅" if match_wins > 0 else "LOSS ❌"
-                    color = 0x00FF00 if match_wins > 0 else 0xFF0000
-                    
-                    embed = discord.Embed(
-                        title=f"{player} played 1 game of BedWars",
-                        description=f"**Match - {result}**\n🛏️ Bed - **{match_beds}**\n💀 Final Kills - **{match_final}**\n⚔️ Kills - **{match_kills}**\n☠️ Deaths - **{match_deaths}**",
-                        color=color
-                    )
-                    embed.set_footer(text="Shark 🦈 Tracker")
-                    
-                    for guild in bot.guilds:
-                        for channel in guild.text_channels:
-                            if channel.name == "snipe":
-                                await channel.send(embed=embed)
-                                break
+            try:
+                new_stats = get_stats(player)
+                if new_stats:
+                    new_games = new_stats["games"]
+                    if new_games > old_games:
+                        old = last_stats.get(player, {})
+                        match_wins = max(0, new_stats["wins"] - old.get("wins", 0))
+                        match_kills = max(0, new_stats["kills"] - old.get("kills", 0))
+                        match_final = max(0, new_stats["final_kills"] - old.get("final_kills", 0))
+                        match_beds = max(0, new_stats["beds"] - old.get("beds", 0))
+                        match_deaths = max(0, new_stats["deaths"] - old.get("deaths", 0))
+                        
+                        tracking[player] = new_games
+                        last_stats[player] = {
+                            "wins": new_stats["wins"], "kills": new_stats["kills"],
+                            "final_kills": new_stats["final_kills"], "beds": new_stats["beds"], "deaths": new_stats["deaths"]
+                        }
+                        save_tracking()
+                        
+                        result = "WIN ✅" if match_wins > 0 else "LOSS ❌"
+                        color = 0x00FF00 if match_wins > 0 else 0xFF0000
+                        
+                        embed = discord.Embed(
+                            title=f"{player} played 1 game of BedWars",
+                            description=f"**Match - {result}**\n🛏️ Bed - **{match_beds}**\n💀 Final Kills - **{match_final}**\n⚔️ Kills - **{match_kills}**\n☠️ Deaths - **{match_deaths}**",
+                            color=color
+                        )
+                        embed.set_footer(text="Shark 🦈 Tracker")
+                        
+                        for guild in bot.guilds:
+                            for channel in guild.text_channels:
+                                if channel.name == "snipe":
+                                    try:
+                                        await channel.send(embed=embed)
+                                        print(f"Alert sent for {player}")
+                                    except Exception as e:
+                                        print(f"Failed to send alert: {e}")
+                                    break
+            except Exception as e:
+                print(f"Error checking {player}: {e}")
         await asyncio.sleep(3)
 
 bot.run(TOKEN)
