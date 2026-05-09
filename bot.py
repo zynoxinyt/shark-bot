@@ -49,23 +49,6 @@ def tracking_embed(username, stats):
     embed.set_footer(text="Shark Tracker • Every 3s")
     return embed
 
-def alert_embed(username, match_stats):
-    kills = match_stats.get('kills', 0)
-    beds = match_stats.get('beds', 0)
-    deaths = match_stats.get('deaths', 0)
-    wins = match_stats.get('wins', 0)
-    
-    result = "WIN" if wins > 0 else "LOSS"
-    color = 0x00FF00 if wins > 0 else 0xFF0000
-    
-    embed = discord.Embed(
-        title=f"{username} Is Playing BedWars!",
-        description=f"**Match - {result}**\nKills: **{kills}** | Beds: **{beds}** | Deaths: **{deaths}**",
-        color=color
-    )
-    embed.set_footer(text="Shark • GO GO GO!")
-    return embed
-
 intents = discord.Intents.default()
 intents.message_content = True
 bot = commands.Bot(command_prefix="!", intents=intents)
@@ -188,8 +171,9 @@ async def tracking_loop():
                     if ch:
                         channel = bot.get_channel(ch)
                         if channel:
-                            embed = alert_embed(player, match)
-                            await channel.send("**SNIPE ALERT!**", embed=embed)
+                            result = "WIN" if match["wins"] > 0 else "LOSS"
+                            msg = f"**SNIPE ALERT!**\n{player} Is Playing BedWars!\nMatch - {result}\nKills: {match['kills']} | Beds: {match['beds']} | Deaths: {match['deaths']}"
+                            await channel.send(msg)
         await asyncio.sleep(3)
 
 bot.run(TOKEN)
