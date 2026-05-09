@@ -51,14 +51,13 @@ def tracking_embed(username, stats):
 
 def alert_embed(username, match_stats):
     result = "WIN ✅" if match_stats["wins"] > 0 else "LOSS ❌"
+    color = 0x00FF00 if match_stats["wins"] > 0 else 0xFF0000
+    
     embed = discord.Embed(
         title=f"🟢 {username} Is Playing BedWars!",
-        description=f"**Match - {result}**",
-        color=0x00FF00 if match_stats["wins"] > 0 else 0xFF0000
+        description=f"**Match - {result}**\n\n⚔️ Kills: **{match_stats['kills']}** | 🛏️ Beds: **{match_stats['beds']}** | ☠️ Deaths: **{match_stats['deaths']}**",
+        color=color
     )
-    embed.add_field(name="⚔️ Kills", value=f"**{match_stats['kills']}**", inline=True)
-    embed.add_field(name="🛏️ Beds", value=f"**{match_stats['beds']}**", inline=True)
-    embed.add_field(name="☠️ Deaths", value=f"**{match_stats['deaths']}**", inline=True)
     embed.set_footer(text="Shark 🦈 • GO GO GO!")
     return embed
 
