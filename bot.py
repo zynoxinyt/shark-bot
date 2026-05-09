@@ -42,23 +42,23 @@ def get_stats(player):
         return None
 
 def tracking_embed(username, stats):
-    embed = discord.Embed(title=f"🎯 Now Tracking {username}", color=0x2ECC71)
-    embed.add_field(name="Games", value=f"**{stats['games']:,}**", inline=True)
-    embed.add_field(name="Wins", value=f"**{stats['wins']:,}**", inline=True)
-    embed.add_field(name="Kills", value=f"**{stats['kills']:,}**", inline=True)
+    embed = discord.Embed(title=f"Tracking {username}", color=0x2ECC71)
+    embed.add_field(name="Games", value=f"{stats['games']:,}", inline=True)
+    embed.add_field(name="Wins", value=f"{stats['wins']:,}", inline=True)
+    embed.add_field(name="Kills", value=f"{stats['kills']:,}", inline=True)
     embed.set_footer(text="Shark Tracker • Every 3s")
     return embed
 
 def alert_embed(username, match_stats):
-    result = "WIN ✅" if match_stats["wins"] > 0 else "LOSS ❌"
+    result = "WIN" if match_stats["wins"] > 0 else "LOSS"
     color = 0x00FF00 if match_stats["wins"] > 0 else 0xFF0000
     
     embed = discord.Embed(
-        title=f"🟢 {username} Is Playing BedWars!",
-        description=f"**Match - {result}**\n\n⚔️ Kills: **{match_stats['kills']}** | 🛏️ Beds: **{match_stats['beds']}** | ☠️ Deaths: **{match_stats['deaths']}**",
+        title=f"{username} Is Playing BedWars!",
+        description=f"**Match - {result}**\nKills: **{match_stats['kills']}** | Beds: **{match_stats['beds']}** | Deaths: **{match_stats['deaths']}**",
         color=color
     )
-    embed.set_footer(text="Shark 🦈 • GO GO GO!")
+    embed.set_footer(text="Shark • GO GO GO!")
     return embed
 
 intents = discord.Intents.default()
@@ -112,7 +112,7 @@ async def track(interaction: discord.Interaction, player: str):
     await interaction.response.defer()
     stats = get_stats(player)
     if stats is None:
-        await interaction.followup.send(f"❌ Could not find: **{player}**")
+        await interaction.followup.send(f"Could not find: {player}")
         return
     tracking[player] = stats["games"]
     last_stats[player] = {
@@ -128,9 +128,9 @@ async def track(interaction: discord.Interaction, player: str):
 async def tracklist(interaction: discord.Interaction):
     await interaction.response.defer()
     if not tracking:
-        await interaction.followup.send("📭 Not tracking anyone!")
+        await interaction.followup.send("Not tracking anyone!")
         return
-    msg = "**📋 Tracking List:**\n"
+    msg = "**Tracking List:**\n"
     for p, g in tracking.items():
         msg += f"• **{p}**: {g:,} games\n"
     await interaction.followup.send(msg)
@@ -142,23 +142,23 @@ async def stoptrack(interaction: discord.Interaction, player: str):
         alert_channel.pop(player, None)
         last_stats.pop(player, None)
         save_tracking()
-        await interaction.response.send_message(f"🛑 Stopped **{player}**")
+        await interaction.response.send_message(f"Stopped {player}")
     else:
-        await interaction.response.send_message(f"❌ Not tracking **{player}**")
+        await interaction.response.send_message(f"Not tracking {player}")
 
 @bot.tree.command(name="check", description="Check player stats")
 async def check(interaction: discord.Interaction, player: str):
     await interaction.response.defer()
     stats = get_stats(player)
     if stats is None:
-        await interaction.followup.send(f"❌ Not found: **{player}**")
+        await interaction.followup.send(f"Not found: {player}")
         return
     embed = tracking_embed(player, stats)
     await interaction.followup.send(embed=embed)
 
 @bot.tree.command(name="ping", description="Test if Shark is online")
 async def ping(interaction: discord.Interaction):
-    await interaction.response.send_message("🦈 Shark is online!")
+    await interaction.response.send_message("Shark is online!")
 
 async def tracking_loop():
     await bot.wait_until_ready()
@@ -187,7 +187,7 @@ async def tracking_loop():
                         channel = bot.get_channel(ch)
                         if channel:
                             embed = alert_embed(player, match)
-                            await channel.send("🚨 **SNIPE ALERT!**", embed=embed)
+                            await channel.send("**SNIPE ALERT!**", embed=embed)
         await asyncio.sleep(3)
 
 bot.run(TOKEN)
